@@ -53,8 +53,7 @@ async fn main() -> Result<()> {
     let zenoh_session = zenoh::open(zenoh_config)
         .res()
         .await
-        .map_err(ErrorWrapper::ZenohError)?
-        .into_arc();
+        .map_err(ErrorWrapper::ZenohError)?;
 
     info!("Archiving package");
     let mut archive = Builder::new(Vec::new());
