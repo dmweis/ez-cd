@@ -65,6 +65,7 @@ async fn main() -> Result<()> {
     let archive = archive.into_inner()?;
 
     info!("Sending archive on: {:?}", target_topic);
+    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
     zenoh_session
         .put(target_topic, archive)
         .res()
