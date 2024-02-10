@@ -1,0 +1,14 @@
+[Unit]
+Description=ezcd-service
+After=network-online.target nss-lookup.target
+Wants=network-online.target
+
+[Service]
+User=root
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/bin/ezcd-serivce --config /etc/ezcd/settings
+
+[Install]
+WantedBy=default.target
