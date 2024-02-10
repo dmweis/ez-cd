@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
-use ez_cd::{setup_tracing, ErrorWrapper};
+use ez_cd::{get_simple_install_topic, setup_tracing, ErrorWrapper};
 use std::path::PathBuf;
 use tar::Builder;
 use tracing::*;
@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
     let args: Args = Args::parse();
     setup_tracing(args.verbose);
 
-    let target_topic = format!("ezcd/{}/dpkg", args.device);
+    let target_topic = get_simple_install_topic(&args.device);
 
     let mut zenoh_config = ZenohConfig::default();
     zenoh_config

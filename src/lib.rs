@@ -29,3 +29,7 @@ pub enum ErrorWrapper {
     #[error("Zenoh error {0:?}")]
     ZenohError(#[from] zenoh::Error),
 }
+
+pub fn get_simple_install_topic(device_name: &str) -> String {
+    format!("ezcd/simple_install/{}/dpkg", device_name)
+}

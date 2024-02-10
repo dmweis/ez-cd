@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use ez_cd::{setup_tracing, AppConfig, ErrorWrapper};
+use ez_cd::{get_simple_install_topic, setup_tracing, AppConfig, ErrorWrapper};
 use std::path::PathBuf;
 use tar::Archive;
 use tempdir::TempDir;
@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
     let device_name = args.device_name.unwrap_or_else(|| hostname.to_owned());
     info!(?device_name, "Using device name");
 
-    let subscriber_topic = format!("ezcd/{}/dpkg", device_name);
+    let subscriber_topic = get_simple_install_topic(&device_name);
     info!(?subscriber_topic, "Subscribing on topic");
 
     let app_config = AppConfig::read_config(&args.config)?;
