@@ -31,5 +31,5 @@ pub enum ErrorWrapper {
 }
 
 pub fn get_simple_install_topic(device_name: &str) -> String {
-    format!("ez-cd/simple_install/{}/dpkg", device_name)
+    format!("ez-cd/simple_install_query/{}/dpkg", device_name)
 }

@@ -65,12 +65,18 @@ async fn main() -> Result<()> {
     let archive = archive.into_inner()?;
 
     info!("Sending archive on: {:?}", target_topic);
-    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
-    zenoh_session
-        .put(target_topic, archive)
+    let replies = zenoh_session
+        .get(target_topic)
+        .with_value(archive)
         .res()
         .await
         .map_err(ErrorWrapper::ZenohError)?;
 
+    while let Ok(reply) = replies.recv_async().await {
+        match reply.sample {
+            Ok(sample) => info!("Success: \n{}", sample.value),
+            Err(err) => error!("Failure: \n{}", String::try_from(&err).unwrap_or_default()),
+        }
+    }
     Ok(())
 }

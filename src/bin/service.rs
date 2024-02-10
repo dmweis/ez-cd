@@ -6,7 +6,7 @@ use tar::Archive;
 use tempdir::TempDir;
 use tokio::process::Command;
 use tracing::*;
-use zenoh::prelude::r#async::*;
+use zenoh::{prelude::r#async::*, queryable::Query};
 
 /// EZ-CD service
 #[derive(Parser)]
@@ -70,29 +70,31 @@ async fn main() -> Result<()> {
         .await
         .map_err(ErrorWrapper::ZenohError)?;
 
-    let subscriber = zenoh_session
-        .declare_subscriber(&subscriber_topic)
-        .reliable()
+    let queryable = zenoh_session
+        .declare_queryable(&subscriber_topic)
         .res()
         .await
         .map_err(ErrorWrapper::ZenohError)?;
 
     loop {
-        match subscriber.recv_async().await {
-            Ok(sample) => {
-                info!("Received new install command");
-                let encoding = sample.encoding.clone();
-                if let Ok(payload) = Vec::<u8>::try_from(sample.value) {
-                    let archive = Archive::new(payload.as_slice());
-                    info!("Loaded archive");
-                    if let Err(err) = install_debian_package(archive).await {
-                        error!(error =? err, "Failed running install command");
+        match queryable.recv_async().await {
+            Ok(query) => {
+                let result = process_install_query(&query).await;
+                match result {
+                    Ok(success_message) => {
+                        query
+                            .reply(Ok(Sample::new(query.key_expr().clone(), success_message)))
+                            .res()
+                            .await
+                            .map_err(ErrorWrapper::ZenohError)?;
                     }
-                } else {
-                    error!(
-                        "Failed to extract binary payload from message. Unexpected encoding {:?}",
-                        encoding
-                    );
+                    Err(error_message) => {
+                        query
+                            .reply(Err(error_message.to_string().into()))
+                            .res()
+                            .await
+                            .map_err(ErrorWrapper::ZenohError)?;
+                    }
                 }
             }
             Err(err) => {
@@ -102,7 +104,26 @@ async fn main() -> Result<()> {
     }
 }
 
-async fn install_debian_package(mut archive: Archive<&[u8]>) -> anyhow::Result<()> {
+async fn process_install_query(query: &Query) -> anyhow::Result<String> {
+    info!("Received new install command");
+    if let Some(query_value) = query.value() {
+        let encoding = query_value.encoding.clone();
+        if let Ok(payload) = Vec::<u8>::try_from(query_value) {
+            let archive = Archive::new(payload.as_slice());
+            info!("Loaded archive");
+            install_debian_package(archive).await
+        } else {
+            anyhow::bail!(
+                "Failed to extract binary payload from message. Unexpected encoding {:?}",
+                encoding
+            );
+        }
+    } else {
+        anyhow::bail!("Install query doesn't contain value");
+    }
+}
+
+async fn install_debian_package(mut archive: Archive<&[u8]>) -> anyhow::Result<String> {
     let tmp_dir = TempDir::new("install_directory")?;
     info!(temp_dir =? tmp_dir.path(), "Unpacking archive");
 
@@ -139,13 +160,18 @@ async fn install_debian_package(mut archive: Archive<&[u8]>) -> anyhow::Result<(
             exit_code =? exit_code.code(),
             "dpkg install failed",
         );
+        anyhow::bail!(
+            "Failed with stdout: {:?} stderr {:?} exit {:?}",
+            stdout_output,
+            stderr_output,
+            exit_code.code()
+        );
     } else {
         info!(
             stdout =? stdout_output,
             stderr =? stderr_output,
             exit_code =? exit_code.code(),
             "Package successfully installed");
+        Ok(stdout_output.to_owned())
     }
-
-    Ok(())
 }

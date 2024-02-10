@@ -1,6 +1,6 @@
 [package]
 name = "ez-cd"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["David Michael Weis <dweis7@gmail.com>"]
 description = "Deployment system for my robots"
