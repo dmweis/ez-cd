@@ -7,7 +7,7 @@ use tracing::*;
 use zenoh::config::Config as ZenohConfig;
 use zenoh::prelude::r#async::*;
 
-/// Hopper body controller
+/// EZ-CD cli
 #[derive(Parser)]
 #[command(author, version)]
 struct Args {

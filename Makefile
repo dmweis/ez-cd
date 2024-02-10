@@ -14,17 +14,18 @@ build-deb: build
 install-dependencies:
 	cargo install cargo-deb
 
+.PHONY: install-cli
+install-cli:
+	cargo build --release --bin ez-cd-cli
+	cargo deb --no-build --fast --variant cli
+	sudo dpkg -i target/debian/ez-cd-cli*.deb
+
 .PHONY: build-docker
 build-docker:
 	rm -rf docker_out
 	mkdir docker_out
-	DOCKER_BUILDKIT=1 docker build --tag hopper-builder --file Dockerfile --output type=local,dest=docker_out .
+	DOCKER_BUILDKIT=1 docker build --tag ez-cd-builder --file Dockerfile --output type=local,dest=docker_out .
 
 .PHONY: push-docker
 push-docker: build-docker
-	rsync -avz --delete docker_out/* $(TARGET_HOST_USER):/home/$(TARGET_USERNAME)/ezcd-service
-
-.PHONY: deploy-docker
-deploy-docker: push-docker
-	@echo "Installing ezcd on $(TARGET_HOST)"
-	mosquitto_pub -h homepi -t "hopper/build" -n
+	rsync -avz --delete docker_out/* $(TARGET_HOST_USER):/home/$(TARGET_USERNAME)/ez-cd-service

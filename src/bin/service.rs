@@ -8,7 +8,7 @@ use tokio::process::Command;
 use tracing::*;
 use zenoh::prelude::r#async::*;
 
-/// Hopper body controller
+/// EZ-CD service
 #[derive(Parser)]
 #[command(author, version)]
 struct Args {
@@ -81,9 +81,11 @@ async fn main() -> Result<()> {
     loop {
         match subscriber.recv_async().await {
             Ok(sample) => {
+                info!("Received new install command");
                 let encoding = sample.encoding.clone();
                 if let Ok(payload) = Vec::<u8>::try_from(sample.value) {
                     let archive = Archive::new(payload.as_slice());
+                    info!("Loaded archive");
                     if let Err(err) = install_debian_package(archive).await {
                         error!(error =? err, "Failed running install command");
                     }
@@ -103,7 +105,7 @@ async fn main() -> Result<()> {
 
 async fn install_debian_package(mut archive: Archive<&[u8]>) -> anyhow::Result<()> {
     let tmp_dir = TempDir::new("install_directory")?;
-    info!(temp_dir =? tmp_dir.path(), "Using temp directory");
+    info!(temp_dir =? tmp_dir.path(), "Unpacking archive");
 
     archive.unpack(tmp_dir.path())?;
 
@@ -114,6 +116,7 @@ async fn install_debian_package(mut archive: Archive<&[u8]>) -> anyhow::Result<(
         anyhow::bail!("Package not found in archive");
     }
 
+    info!("Installing new package");
     let output = Command::new("dpkg")
         .kill_on_drop(true)
         .current_dir(tmp_dir.path())
@@ -142,7 +145,7 @@ async fn install_debian_package(mut archive: Archive<&[u8]>) -> anyhow::Result<(
             stdout =? stdout_output,
             stderr =? stderr_output,
             exit_code =? exit_code.code(),
-            "Success installing package");
+            "Package successfully installed");
     }
 
     Ok(())

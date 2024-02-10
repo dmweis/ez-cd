@@ -37,11 +37,17 @@ RUN cargo chef cook --release --recipe-path recipe.json
 COPY . .
 
 # Build
-RUN cargo build --release --bin ezcd-service
-RUN cargo deb --no-build --fast
+RUN cargo build --release --bin ez-cd-service
+RUN cargo deb --no-build --fast --variant service
+RUN cargo build --release --bin ez-cd-cli
+RUN cargo deb --no-build --fast --variant cli
 
 # Copy to exporter
 FROM scratch AS export
-COPY --from=builder /app/target/debian/ezcd-service*.deb /
-COPY --from=builder /app/target/debian/ezcd-service*.deb /ezcd-service.deb
-COPY --from=builder /app/target/release/ezcd-service /
+COPY --from=builder /app/target/debian/ez-cd-service*.deb /
+COPY --from=builder /app/target/debian/ez-cd-service*.deb /ez-cd-service.deb
+COPY --from=builder /app/target/release/ez-cd-service /
+
+COPY --from=builder /app/target/debian/ez-cd-cli*.deb /
+COPY --from=builder /app/target/debian/ez-cd-cli*.deb /ez-cd-cli.deb
+COPY --from=builder /app/target/release/ez-cd-cli /

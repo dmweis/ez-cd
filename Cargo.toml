@@ -8,36 +8,45 @@ license = "MIT OR APACHE"
 publish = false
 readme = "README.md"
 repository = "https://github.com/dmweis/ez-cd"
-default-run = "ezcd-cli"
+default-run = "ez-cd-cli"
 
-[package.metadata.deb]
+[package.metadata.deb.variants.service]
+name = "ez-cd-service"
 assets = [
   [
-    "target/release/ezcd-service",
+    "target/release/ez-cd-service",
     "/usr/bin/",
     "755",
   ],
   [
     "config/settings.yaml",
-    "/etc/ezcd/settings.yaml",
+    "/etc/ez-cd/settings.yaml",
     "644",
   ],
 ]
-conf-files = ["/etc/ezcd/settings.yaml"]
+conf-files = ["/etc/ez-cd/settings.yaml"]
 maintainer = "David Weis <dweis7@gmail.com>"
 maintainer-scripts = "debian/"
+systemd-units = {}
 
-[package.metadata.deb.systemd-units]
-
+[package.metadata.deb.variants.cli]
+name = "ez-cd-cli"
+assets = [
+  [
+    "target/release/ez-cd-cli",
+    "/usr/bin/",
+    "755",
+  ]
+]
+maintainer = "David Weis <dweis7@gmail.com>"
 
 [[bin]]
-name = "ezcd-cli"
+name = "ez-cd-cli"
 path = "src/bin/cli.rs"
 
 [[bin]]
-name = "ezcd-service"
+name = "ez-cd-service"
 path = "src/bin/service.rs"
-
 
 
 [dependencies]
