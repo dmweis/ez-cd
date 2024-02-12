@@ -7,15 +7,12 @@
 Send file for install:
 
 ```shell
-ez-cd-cli -f FILE_PATH.deb -d TARGET_HOSTNAME --connect tcp/homepi:7447
+ez-cd-cli -f FILE_PATH.deb -d TARGET_HOSTNAME
 
-
-ez-cd-cli -f docker_out/hub-system_0.6.22_arm64.deb -d homepi --connect tcp/homepi:7447
+ez-cd-cli -f docker_out/hub-system_0.6.22_arm64.deb -d raspberry
 ```
 
-## Warning
-
-!DO NOT USE THIS PROJECT!
+## Warning - DO NOT USE THIS PROJECT
 
 This project poses a massive security risk if you ever allow anyone unauthenticated to connect to the service.
 It's basically allowing anyone to execute commands with root privileges.
