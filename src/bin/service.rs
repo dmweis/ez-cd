@@ -140,6 +140,7 @@ async fn install_debian_package(mut archive: Archive<&[u8]>) -> anyhow::Result<S
     let output = Command::new("dpkg")
         .kill_on_drop(true)
         .current_dir(tmp_dir.path())
+        // force accept old config files
         .arg("--force-confold")
         .arg("-i")
         .arg(package_path)
