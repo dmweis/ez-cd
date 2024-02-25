@@ -2,6 +2,7 @@ use anyhow::Result;
 use clap::Parser;
 use ez_cd::{get_simple_install_topic, setup_tracing, ErrorWrapper};
 use std::path::PathBuf;
+use std::time::Duration;
 use tar::Builder;
 use tracing::*;
 use zenoh::config::Config as ZenohConfig;
@@ -67,6 +68,7 @@ async fn main() -> Result<()> {
     info!("Sending archive on: {:?}", target_topic);
     let replies = zenoh_session
         .get(target_topic)
+        .timeout(Duration::from_secs(60))
         .with_value(archive)
         .res()
         .await
