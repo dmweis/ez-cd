@@ -34,7 +34,7 @@ struct Args {
     verbose: u8,
 }
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main(flavor = "multi_thread", worker_threads = 1)]
 async fn main() -> Result<()> {
     let args: Args = Args::parse();
     setup_tracing(args.verbose);
